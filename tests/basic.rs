@@ -15,7 +15,7 @@ async fn connect_test() {
 
     assert_eq!(version, [2, 0, 4, 0]);
 
-    device.disconnect().await.unwrap();
+    device.disconnect().unwrap();
 
     assert_eq!(device.is_connected(), false);
 }
