@@ -1,15 +1,15 @@
-use libbladerf_native_rs::list_devices;
+use libbladerf_native_rs::usb::list_devices;
 
 #[tokio::test]
 async fn connect_test() {
-    let mut devices = list_devices().unwrap();
-    let mut device = devices.pop().unwrap();
+    let mut devices = list_devices::<4>().await.unwrap();
+    let mut device = devices[0].take().unwrap();
 
-    assert_eq!(device.is_connected(), false);
+    assert!(!device.is_connected());
 
     device.connect().await.unwrap();
 
-    assert_eq!(device.is_connected(), true);
+    assert!(device.is_connected());
 
     let version = device.get_version().await.unwrap();
 
@@ -17,5 +17,5 @@ async fn connect_test() {
 
     device.disconnect().unwrap();
 
-    assert_eq!(device.is_connected(), false);
+    assert!(!device.is_connected());
 }

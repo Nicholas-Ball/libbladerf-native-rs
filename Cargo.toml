@@ -4,9 +4,13 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
-anyhow = "1.0.95"
-nusb = "0.1.12"
+anyhow = { version = "1.0.95", default-features = false }
+nusb = { version = "0.1.12", optional = true }
 
 [dev-dependencies]
 tokio = { version = "1.43.0", features = ["full"] }
+
+[features]
+default = ["std"]
+std = ["nusb"]
 
