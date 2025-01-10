@@ -2,6 +2,17 @@ use std::future::Future;
 use ::nusb::{DeviceInfo, Interface};
 use anyhow::Result;
 
+const BLADE_USB_CMD_QUERY_VERSION: u8 = 0;
+const BLADE_USB_CMD_QUERY_FPGA_STATUS: u8 = 2;
+const BLADE_USB_CMD_BEGIN_PROG: u8 = 3;
+const BLADE_USB_CMD_END_PROG: u8 = 4;
+const BLADE_USB_CMD_RF_RX: u8 = 5;
+const BLADE_USB_CMD_RF_TX: u8 = 6;
+const BLADE_USB_CMD_QUERY_DEVICE_READY: u8 = 7;
+const BLADE_USB_CMD_QUERY_FLASH_ID: u8 = 8;
+const BLADE_USB_CMD_QUERY_FPGA_SOURCE: u8 = 9;
+const BLADE_USB_CMD_FLASH_READ: u8 = 100;
+
 #[cfg(feature = "nusb")]
 mod nusb;
 
@@ -14,8 +25,6 @@ pub struct Device {
 
     #[cfg(feature = "nusb")]
     pub(crate) device: DeviceInfo,
-
-
 }
 
 #[cfg(feature = "nusb")]
@@ -45,7 +54,7 @@ impl Device{
     #[cfg(feature = "nusb")]
     pub async fn get_version(&mut self) -> Result<[u8;4]>{
         if let Some(int) = &mut self.interface {
-            nusb::nusb_bladerf_to_host::<0,0,0,4>(int).await
+            nusb::nusb_bladerf_to_host::<BLADE_USB_CMD_QUERY_VERSION,0,0,4>(int).await
         }else {
             Err(anyhow::anyhow!("Device not connected"))
         }
