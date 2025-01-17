@@ -36,18 +36,18 @@ impl Device{
     pub fn is_connected(&self) -> bool {
         self.interface.is_some()
     }
-    
+
     pub async fn connect(&mut self) -> Result<()> {
         // Connect to the device
         self.interface = Some(self.device.open()?.claim_interface(0)?);
-        
+
         Ok(())
     }
-    
+
     pub async fn enable_rx(&mut self) -> Result<()> {
         if let Some(int) = &mut self.interface {
             let test = nusb::nusb_bladerf_to_host::<BLADE_USB_CMD_RF_RX,1,0,4>(int).await?;
-            
+
             if test == [0,0,0,0] {
                 Ok(())
             } else {
@@ -71,7 +71,6 @@ impl Device{
             Err(anyhow::anyhow!("Device not connected"))
         }
     }
-
 
     pub async fn enable_tx(&mut self) -> Result<()> {
         if let Some(int) = &mut self.interface {
