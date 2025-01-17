@@ -6,10 +6,24 @@ extern crate alloc;
 #[cfg(feature = "std")]
 extern crate std;
 
+#[cfg(feature = "nusb")]
 use nusb::{DeviceInfo, Interface};
+use usb::*;
 
 pub mod usb;
 mod nios;
+
+
+const BLADE_USB_CMD_QUERY_VERSION: u8 = 0;
+const BLADE_USB_CMD_QUERY_FPGA_STATUS: u8 = 1;
+const BLADE_USB_CMD_BEGIN_PROG: u8 = 2;
+const BLADE_USB_CMD_END_PROG: u8 = 3;
+const BLADE_USB_CMD_RF_RX: u8 = 4;
+const BLADE_USB_CMD_RF_TX: u8 = 5;
+const BLADE_USB_CMD_QUERY_DEVICE_READY: u8 = 6;
+const BLADE_USB_CMD_QUERY_FLASH_ID: u8 = 7;
+const BLADE_USB_CMD_QUERY_FPGA_SOURCE: u8 = 8;
+const BLADE_USB_CMD_FLASH_READ: u8 = 100;
 
 
 pub struct Device {
@@ -23,9 +37,8 @@ pub struct Device {
     pub(crate) device: DeviceInfo,
 }
 
-#[cfg(feature = "nusb")]
 pub async fn list_devices<const len: usize>() -> anyhow::Result<[Option<Device>; len]> {
-    usb::list_devices::<len, 0x2CF0>().await
+    usb::list_devices::<len>().await
 }
 
 #[cfg(feature = "nusb")]
@@ -42,68 +55,48 @@ impl Device{
     }
 
     pub async fn enable_rx(&mut self) -> anyhow::Result<()> {
-        if let Some(int) = &mut self.interface {
-            let test = nusb::nusb_bladerf_to_host::<crate::usb::BLADE_USB_CMD_RF_RX,1,0,4>(int).await?;
+        let test = control_device_to_host::<BLADE_USB_CMD_RF_RX,1,0,4>(self).await?;
 
-            if test == [0,0,0,0] {
-                Ok(())
-            } else {
-                Err(anyhow::anyhow!("Error enabling RX"))
-            }
+        if test == [0,0,0,0] {
+            Ok(())
         } else {
-            Err(anyhow::anyhow!("Device not connected"))
+            Err(anyhow::anyhow!("Error enabling RX"))
         }
     }
 
     pub async fn disable_rx(&mut self) -> anyhow::Result<()> {
-        if let Some(int) = &mut self.interface {
-            let test = nusb::nusb_bladerf_to_host::<crate::usb::BLADE_USB_CMD_RF_RX,0,0,4>(int).await?;
+        let test = control_device_to_host::<BLADE_USB_CMD_RF_RX,0,0,4>(self).await?;
 
-            if test == [64,0,0,0] {
-                Ok(())
-            } else {
-                Err(anyhow::anyhow!("Error disabling RX"))
-            }
+        if test == [64,0,0,0] {
+            Ok(())
         } else {
-            Err(anyhow::anyhow!("Device not connected"))
+            Err(anyhow::anyhow!("Error disabling RX"))
         }
     }
 
 
-    pub async fn enable_tx(&mut self) -> anyhow::Result<()> {
-        if let Some(int) = &mut self.interface {
-            let test = nusb::nusb_bladerf_to_host::<crate::usb::BLADE_USB_CMD_RF_TX,1,0,4>(int).await?;
+    pub async fn enable_tx(&self) -> anyhow::Result<()> {
+        let test = control_device_to_host::<BLADE_USB_CMD_RF_TX,1,0,4>(self).await?;
 
-            if test == [0,0,0,0] {
-                Ok(())
-            } else {
-                Err(anyhow::anyhow!("Error enabling RX"))
-            }
+        if test == [0,0,0,0] {
+            Ok(())
         } else {
-            Err(anyhow::anyhow!("Device not connected"))
+            Err(anyhow::anyhow!("Error enabling RX"))
         }
     }
 
     pub async fn disable_tx(&mut self) -> anyhow::Result<()> {
-        if let Some(int) = &mut self.interface {
-            let test = nusb::nusb_bladerf_to_host::<crate::usb::BLADE_USB_CMD_RF_TX,0,0,4>(int).await?;
+        let test = control_device_to_host::<BLADE_USB_CMD_RF_TX,0,0,4>(self).await?;
 
-            if test == [64,0,0,0] {
-                Ok(())
-            } else {
-                Err(anyhow::anyhow!("Error disabling RX"))
-            }
+        if test == [64,0,0,0] {
+            Ok(())
         } else {
-            Err(anyhow::anyhow!("Device not connected"))
+            Err(anyhow::anyhow!("Error disabling RX"))
         }
     }
 
     pub async fn get_version(&mut self) -> anyhow::Result<[u8; 4]> {
-        if let Some(int) = &mut self.interface {
-            nusb::nusb_bladerf_to_host::<crate::usb::BLADE_USB_CMD_QUERY_VERSION,0,0,4>(int).await
-        } else {
-            Err(anyhow::anyhow!("Device not connected"))
-        }
+        control_device_to_host::<BLADE_USB_CMD_QUERY_VERSION, 0, 0, 4>(self).await
     }
 
     pub fn disconnect(&mut self) -> anyhow::Result<()> {
