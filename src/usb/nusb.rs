@@ -1,5 +1,5 @@
 use nusb::Interface;
-use nusb::transfer::{ControlIn, ControlOut, ControlType, Recipient};
+use nusb::transfer::{ControlIn, ControlOut, ControlType, Recipient, RequestBuffer};
 use crate::usb::Device;
 
 pub async fn nusb_bladerf_to_host<const request: u8, const value: u16, const index: u16, const length: usize>(interface: &mut Interface) -> anyhow::Result<[u8;length]>{
@@ -34,6 +34,24 @@ pub async fn nusb_host_to_bladerf<const request: u8, const value: u16, const ind
     }else {
         Err(anyhow::anyhow!("Error writing to device"))
     }
+}
+
+pub async fn nusb_bulk_transfer_in<const endpoint: u8, const len: usize>(interface: &mut Interface) -> anyhow::Result<RequestBuffer>{
+    Ok(
+        interface.bulk_in(
+            endpoint,
+            RequestBuffer::new(len)
+        ).await?
+    )
+}
+
+pub async fn nusb_bulk_transfer_out<const endpoint: u8>(interface: &mut Interface, buf: &[u8]) -> anyhow::Result<RequestBuffer>{
+    Ok(
+        interface.bulk_out(
+            endpoint,
+            buf.into_vec()
+        ).await?
+    )
 }
 
 pub async fn list_devices<const len: usize, const vid: u16>() -> anyhow::Result<[Option<Device>; len]>{
