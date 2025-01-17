@@ -18,24 +18,11 @@ const BLADE_USB_CMD_QUERY_FPGA_SOURCE: u8 = 8;
 const BLADE_USB_CMD_FLASH_READ: u8 = 100;
 
 #[cfg(feature = "nusb")]
-pub async fn list_devices<const len: usize, const vid: u16>() -> Result<[Option<Device>; len]> {
-    let list = nusb::list_devices::<len, vid>().await?;
+mod nusb;
 
-    let mut to_return = [const { None }; len];
-
-    for (index, device) in list.iter().enumerate() {
-        if let Some(dev) = device {
-            to_return[index] = Some(Device {
-                vendor_id: dev.vendor_id(),
-                product_id: dev.product_id(),
-                interface: None,
-                device: dev.clone(),
-            });
-        }
-    }
-
-    Ok(to_return)
-}
+pub struct Device {
+    pub(crate) vendor_id: u16,
+    pub(crate) product_id: u16,
 
 #[cfg(feature = "nusb")]
 pub async fn control_device_to_host<const request: u8, const value: u16, const index: u16,const len: usize>(device: &mut Device) -> Result<[u8; len]> {
