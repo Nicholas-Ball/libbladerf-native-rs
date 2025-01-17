@@ -1,4 +1,4 @@
-use nusb::Interface;
+use nusb::{DeviceInfo, Interface};
 use nusb::transfer::{ControlIn, ControlOut, ControlType, Recipient, RequestBuffer};
 use crate::usb::Device;
 
@@ -54,7 +54,7 @@ pub async fn nusb_bulk_transfer_out<const endpoint: u8>(interface: &mut Interfac
     )
 }
 
-pub async fn list_devices<const len: usize, const vid: u16>() -> anyhow::Result<[Option<Device>; len]>{
+pub async fn list_devices<const len: usize, const vid: u16>() -> anyhow::Result<[Option<DeviceInfo>; len]>{
     let mut to_return = [const { None }; len];
     let mut count = 0;
 

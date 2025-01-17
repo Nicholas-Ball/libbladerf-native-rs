@@ -1,5 +1,10 @@
 use ::nusb::{DeviceInfo, Interface};
 use anyhow::Result;
+use crate::Device;
+use crate::usb::nusb::nusb_host_to_bladerf;
+
+#[cfg(feature = "nusb")]
+mod nusb;
 
 const BLADE_USB_CMD_QUERY_VERSION: u8 = 0;
 const BLADE_USB_CMD_QUERY_FPGA_STATUS: u8 = 1;
@@ -13,105 +18,39 @@ const BLADE_USB_CMD_QUERY_FPGA_SOURCE: u8 = 8;
 const BLADE_USB_CMD_FLASH_READ: u8 = 100;
 
 #[cfg(feature = "nusb")]
-mod nusb;
+pub async fn list_devices<const len: usize, const vid: u16>() -> Result<[Option<Device>; len]> {
+    let list = nusb::list_devices::<len, vid>().await?;
 
-pub struct Device {
-    pub(crate) vendor_id: u16,
-    pub(crate) product_id: u16,
+    let mut to_return = [const { None }; len];
 
-    #[cfg(feature = "nusb")]
-    pub(crate) interface: Option<Interface>,
+    for (index, device) in list.iter().enumerate() {
+        if let Some(dev) = device {
+            to_return[index] = Some(Device {
+                vendor_id: dev.vendor_id(),
+                product_id: dev.product_id(),
+                interface: None,
+                device: dev.clone(),
+            });
+        }
+    }
 
-    #[cfg(feature = "nusb")]
-    pub(crate) device: DeviceInfo,
+    Ok(to_return)
 }
 
 #[cfg(feature = "nusb")]
-pub async fn list_devices<const len: usize>() -> Result<[Option<Device>; len]> {
-    nusb::list_devices::<len, 0x2CF0>().await
+pub async fn control_device_to_host<const request: u8, const value: u16, const index: u16,const len: usize>(device: &mut Device) -> Result<[u8; len]> {
+    if let Some(int) = &mut device.interface {
+        nusb::nusb_bladerf_to_host::<request,value,index,len>(int).await
+    } else {
+        Err(anyhow::anyhow!("Device not connected"))
+    }
 }
 
 #[cfg(feature = "nusb")]
-impl Device{
-    pub fn is_connected(&self) -> bool {
-        self.interface.is_some()
+pub async fn control_host_to_device<const request: u8, const value: u16, const index: u16,const len: usize>(device: &mut Device, data: &[u8]) -> Result<()> {
+    if let Some(int) = &mut device.interface {
+        nusb_host_to_bladerf::<request,value,index>(int, data).await
+    } else {
+        Err(anyhow::anyhow!("Device not connected"))
     }
-    
-    pub async fn connect(&mut self) -> Result<()> {
-        // Connect to the device
-        self.interface = Some(self.device.open()?.claim_interface(0)?);
-        
-        Ok(())
-    }
-    
-    pub async fn enable_rx(&mut self) -> Result<()> {
-        if let Some(int) = &mut self.interface {
-            let test = nusb::nusb_bladerf_to_host::<BLADE_USB_CMD_RF_RX,1,0,4>(int).await?;
-            
-            if test == [0,0,0,0] {
-                Ok(())
-            } else {
-                Err(anyhow::anyhow!("Error enabling RX"))
-            }
-        } else {
-            Err(anyhow::anyhow!("Device not connected"))
-        }
-    }
-
-    pub async fn disable_rx(&mut self) -> Result<()> {
-        if let Some(int) = &mut self.interface {
-            let test = nusb::nusb_bladerf_to_host::<BLADE_USB_CMD_RF_RX,0,0,4>(int).await?;
-
-            if test == [64,0,0,0] {
-                Ok(())
-            } else {
-                Err(anyhow::anyhow!("Error disabling RX"))
-            }
-        } else {
-            Err(anyhow::anyhow!("Device not connected"))
-        }
-    }
-
-
-    pub async fn enable_tx(&mut self) -> Result<()> {
-        if let Some(int) = &mut self.interface {
-            let test = nusb::nusb_bladerf_to_host::<BLADE_USB_CMD_RF_TX,1,0,4>(int).await?;
-
-            if test == [0,0,0,0] {
-                Ok(())
-            } else {
-                Err(anyhow::anyhow!("Error enabling RX"))
-            }
-        } else {
-            Err(anyhow::anyhow!("Device not connected"))
-        }
-    }
-
-    pub async fn disable_tx(&mut self) -> Result<()> {
-        if let Some(int) = &mut self.interface {
-            let test = nusb::nusb_bladerf_to_host::<BLADE_USB_CMD_RF_TX,0,0,4>(int).await?;
-
-            if test == [64,0,0,0] {
-                Ok(())
-            } else {
-                Err(anyhow::anyhow!("Error disabling RX"))
-            }
-        } else {
-            Err(anyhow::anyhow!("Device not connected"))
-        }
-    }
-
-    pub async fn get_version(&mut self) -> Result<[u8;4]>{
-        if let Some(int) = &mut self.interface {
-            nusb::nusb_bladerf_to_host::<BLADE_USB_CMD_QUERY_VERSION,0,0,4>(int).await
-        } else {
-            Err(anyhow::anyhow!("Device not connected"))
-        }
-    }
-
-    pub fn disconnect(&mut self) -> Result<()> {
-        // Disconnect from the device
-        self.interface = None;
-        Ok(())
-    }
-}
+}3
