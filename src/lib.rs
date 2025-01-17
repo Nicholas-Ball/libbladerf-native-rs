@@ -9,22 +9,35 @@ extern crate std;
 #[cfg(feature = "nusb")]
 use nusb::{DeviceInfo, Interface};
 use usb::*;
+use crate::nios::nios_get_fpga_version;
 
 pub mod usb;
 mod nios;
 
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+pub struct BladerfVersion{
+    pub major: u8,
+    pub minor: u8,
+    pub patch: u8,
+}
 
-const BLADE_USB_CMD_QUERY_VERSION: u8 = 0;
-const BLADE_USB_CMD_QUERY_FPGA_STATUS: u8 = 1;
-const BLADE_USB_CMD_BEGIN_PROG: u8 = 2;
-const BLADE_USB_CMD_END_PROG: u8 = 3;
+// const BLADE_USB_CMD_QUERY_VERSION: u8 = 0;
+// const BLADE_USB_CMD_QUERY_FPGA_STATUS: u8 = 1;
+// const BLADE_USB_CMD_BEGIN_PROG: u8 = 2;
+// const BLADE_USB_CMD_END_PROG: u8 = 3;
 const BLADE_USB_CMD_RF_RX: u8 = 4;
 const BLADE_USB_CMD_RF_TX: u8 = 5;
-const BLADE_USB_CMD_QUERY_DEVICE_READY: u8 = 6;
-const BLADE_USB_CMD_QUERY_FLASH_ID: u8 = 7;
-const BLADE_USB_CMD_QUERY_FPGA_SOURCE: u8 = 8;
-const BLADE_USB_CMD_FLASH_READ: u8 = 100;
+// const BLADE_USB_CMD_QUERY_DEVICE_READY: u8 = 6;
+// const BLADE_USB_CMD_QUERY_FLASH_ID: u8 = 7;
+// const BLADE_USB_CMD_QUERY_FPGA_SOURCE: u8 = 8;
+// const BLADE_USB_CMD_FLASH_READ: u8 = 100;
 
+#[repr(u8)]
+#[derive(Copy, Clone, Eq, PartialEq)]
+pub enum BladerfDirection{
+    RX,
+    TX,
+}
 
 pub struct Device {
     pub(crate) vendor_id: u16,
@@ -95,13 +108,17 @@ impl Device{
         }
     }
 
-    pub async fn get_version(&mut self) -> anyhow::Result<[u8; 4]> {
-        control_device_to_host::<BLADE_USB_CMD_QUERY_VERSION, 0, 0, 4>(self).await
+    pub async fn get_version(&mut self) -> anyhow::Result<BladerfVersion> {
+        nios_get_fpga_version(self).await
     }
 
     pub fn disconnect(&mut self) -> anyhow::Result<()> {
         // Disconnect from the device
         self.interface = None;
         Ok(())
+    }
+    
+    pub async fn get_timestamp(&self, bladerf_direction: BladerfDirection) -> anyhow::Result<u64> {
+        nios::nios_get_timestamp(self, bladerf_direction).await
     }
 }
