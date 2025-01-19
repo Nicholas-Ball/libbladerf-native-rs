@@ -9,7 +9,7 @@ const NIOS_PKT_8x8_IDX_ADDR: usize = 4;
 const NIOS_PKT_8x8_IDX_DATA: usize = 5;
 //const NIOS_PKT_8x8_IDX_RESV2: usize = 6;
 
-pub fn pack_8x8(target: u8, write: bool,
+pub fn pkt_8x8(target: u8, write: bool,
     addr: u8, data: u8) -> [u8; 15]
 {
     let mut buf = [0; 15];
