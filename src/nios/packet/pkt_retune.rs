@@ -158,13 +158,13 @@ pub fn unpack_retune(buf: &[u8]) -> (u64, u8, u8)
 pub fn unpack_retune2(buf: &[u8]) -> (u64, u8)
 {
     let mut duration: u64 = buf[NIOS_PKT_RETUNE2_RESP_IDX_TIME + 0] as u64;
-    duration |= (buf[NIOS_PKT_RETUNE2_RESP_IDX_TIME + 1] << 8) as u64;
-    duration |= (buf[NIOS_PKT_RETUNE2_RESP_IDX_TIME + 2] << 16) as u64;
-    duration |= (buf[NIOS_PKT_RETUNE2_RESP_IDX_TIME + 3] << 24) as u64;
-    duration |= (buf[NIOS_PKT_RETUNE2_RESP_IDX_TIME + 4] << 32) as u64;
-    duration |= (buf[NIOS_PKT_RETUNE2_RESP_IDX_TIME + 5] << 40) as u64;
-    duration |= (buf[NIOS_PKT_RETUNE2_RESP_IDX_TIME + 6] << 48) as u64;
-    duration |= (buf[NIOS_PKT_RETUNE2_RESP_IDX_TIME + 7] << 56) as u64;
+    duration |= (buf[NIOS_PKT_RETUNE2_RESP_IDX_TIME + 1] as u64) << 8;
+    duration |= (buf[NIOS_PKT_RETUNE2_RESP_IDX_TIME + 2] as u64) << 16;
+    duration |= (buf[NIOS_PKT_RETUNE2_RESP_IDX_TIME + 3] as u64) << 24;
+    duration |= (buf[NIOS_PKT_RETUNE2_RESP_IDX_TIME + 4] as u64) << 32;
+    duration |= (buf[NIOS_PKT_RETUNE2_RESP_IDX_TIME + 5] as u64) << 40;
+    duration |= (buf[NIOS_PKT_RETUNE2_RESP_IDX_TIME + 6] as u64) << 48;
+    duration |= (buf[NIOS_PKT_RETUNE2_RESP_IDX_TIME + 7] as u64) << 56;
 
     let flags = buf[NIOS_PKT_RETUNE2_RESP_IDX_FLAGS];
 
