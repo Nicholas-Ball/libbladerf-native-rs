@@ -24,7 +24,7 @@ pub async fn nios_8x32_read<const ID:u8, const ADDR: u8>(device: &Device, ) -> R
 }
 
 pub async fn nios_8x32_write<const ID:u8, const ADDR: u8>(device: &Device, data: u32) -> Result<()> {
-    let buf = packets::pkt_8x32::pack_8x32(ID, true, ADDR, data as u64);
+    let buf = packets::pkt_8x32::pack_8x32(ID, true, ADDR, data as u32);
     nios_access::<16>(device, &buf).await?;
     Ok(())
 }
