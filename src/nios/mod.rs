@@ -4,7 +4,7 @@ use crate::nios::packet as packets;
 use crate::usb::{bulk_transfer_in, bulk_transfer_out};
 
 mod packet;
-mod nios_access;
+pub mod nios_access;
 
 const EP_OUT: u8 = 2;
 const EP_IN: u8 = 0x82;

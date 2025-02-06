@@ -64,7 +64,7 @@ pub async fn list_devices<const len: usize, const vid: u16>() -> anyhow::Result<
     let devices = nusb::list_devices()?;
 
     for device in devices{
-        if device.vendor_id() == vid {
+        if device.vendor_id() == vid{
             to_return[count] = Some(
                 Device{
                     vendor_id: device.vendor_id(),

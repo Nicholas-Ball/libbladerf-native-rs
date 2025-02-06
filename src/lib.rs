@@ -12,7 +12,7 @@ use usb::*;
 use crate::nios::nios_get_fpga_version;
 
 pub mod usb;
-mod nios;
+pub mod nios;
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
 pub struct BladerfVersion{

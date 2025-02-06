@@ -250,18 +250,16 @@ use crate::usb::{bulk_transfer_in, bulk_transfer_out};
     //log_verbose("%s: Wrote 0x%08x\n", __FUNCTION__, val);
  }
  
- pub async fn nios_get_fpga_version<const in_len: usize, const out_len: usize, const endpoint: u8>(dev: &Device, ver: &mut BladerfVersion) -> Result<u32>
+ pub async fn nios_get_fpga_version<const in_len: usize, const out_len: usize, const endpoint: u8>(dev: &Device) -> Result<BladerfVersion>
  {
     let regval: u32 = nios_8x32_read::<in_len, out_len, endpoint>(dev, 0, 0).await?;
  
-    //log_verbose("%s: Read FPGA version word: 0x%08x\n", __FUNCTION__, regval);
- 
-    ver.major = ((regval >> 24) & 0xff) as u8;
-    ver.minor = ((regval >> 16) & 0xff) as u8;
-    ver.patch = (regval & 0xffff) as u8; //LE16_TO_HOST(regval & 0xffff);
- 
     //snprintf(ver.describe, BLADERF_VERSION_STR_MAX, "%d.%d.%d", ver.major, ver.minor, ver.patch);
-    Ok(regval)
+    Ok(BladerfVersion{
+        major: ((regval >> 24) & 0xff) as u8,
+        minor: ((regval >> 16) & 0xff) as u8,
+        patch: (regval & 0xffff) as u8
+    })
  }
  
  pub async fn nios_get_timestamp<const in_len: usize, const out_len: usize, const endpoint: u8>(dev: &Device,
