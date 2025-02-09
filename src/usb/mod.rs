@@ -3,7 +3,7 @@ use crate::Device;
 use crate::usb::nusb::nusb_host_to_bladerf;
 
 #[cfg(feature = "nusb")]
-mod nusb;
+pub(crate) mod nusb;
 
 #[cfg(feature = "nusb")]
 pub async fn control_device_to_host <const request: u8, const value: u16, const index: u16,const len: usize>(device: &Device) -> Result<[u8; len]> {

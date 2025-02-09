@@ -7,7 +7,7 @@ extern crate alloc;
 extern crate std;
 
 #[cfg(feature = "nusb")]
-use nusb::{DeviceInfo, Interface};
+use ::nusb::{DeviceInfo, Interface};
 use usb::*;
 use crate::nios::nios_get_fpga_version;
 
@@ -49,6 +49,7 @@ pub struct Device {
     #[cfg(feature = "nusb")]
     pub(crate) device: DeviceInfo,
 }
+
 
 pub async fn list_devices<const len: usize>() -> anyhow::Result<[Option<Device>; len]> {
     usb::list_devices::<len>().await
@@ -109,7 +110,12 @@ impl Device{
     }
 
     pub async fn get_version(&mut self) -> anyhow::Result<BladerfVersion> {
-        nios_get_fpga_version(self).await
+        let version = usb::nusb::nusb_bladerf_to_host::<0,0,0,4>(&<Option<Interface> as Clone>::clone(&self.interface).unwrap()).await?;
+        Ok(BladerfVersion{
+            major: version[0],
+            minor: version[2],
+            patch: version[1],
+        })
     }
 
     pub fn disconnect(&mut self) -> anyhow::Result<()> {
