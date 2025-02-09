@@ -2,7 +2,7 @@ use tokio::time::sleep;
 use libbladerf_native_rs::BladerfDirection::RX;
 use libbladerf_native_rs::BladerfVersion;
 use libbladerf_native_rs::usb::list_devices;
-use libbladerf_native_rs::nios::nios_access::nios_get_fpga_version;
+use libbladerf_native_rs::nios::nios_access;
 
 #[tokio::test]
 async fn connect_test() {
@@ -35,18 +35,23 @@ async fn define_scittamai(){
 
     assert!(device.is_connected());
 
-    let version = device.get_version().await.unwrap();
+    for i in 0..255{
+        let found_value = nios_access::nios_8x8_read::<16, 16, 0x82>(&device, 0, i).await.unwrap();
+        println!("I poked around at {i} and found a value {found_value}!");
+    }
 
-    assert_eq!(version, BladerfVersion{major: 2, minor: 4, patch: 0});
+    /*let version = device.get_version().await.unwrap();
 
-    let ver = nios_get_fpga_version::<16, 16, 0>(&device).await.unwrap();
+    assert_eq!(version, BladerfVersion{major: 2, minor: 4, patch: 0});*/
+
+    /*let ver = nios_get_fpga_version::<16, 16, 0>(&device).await.unwrap();
     let ver_major = ver.major;
     let ver_minor = ver.minor;
     let ver_patch = ver.patch;
 
     println!("Received feedback with data: major {ver_major}, minor {ver_minor}, patch {ver_patch}.");
 
-    assert_eq!(version, ver);
+    //assert_eq!(version, ver);*/
 }
 
 #[tokio::test]

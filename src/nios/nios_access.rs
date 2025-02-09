@@ -53,7 +53,7 @@ use crate::usb::{bulk_transfer_in, bulk_transfer_out};
  {
      let buf = pkt_8x8::pack_8x8(id, false, addr, 0);
  
-     nios_access::<in_len, 15, endpoint>(dev, &buf).await?;
+     nios_access::<in_len, 16, endpoint>(dev, &buf).await?;
  
      let out = pkt_8x8::unpack_8x8(&buf)?.3;
 
@@ -65,7 +65,7 @@ use crate::usb::{bulk_transfer_in, bulk_transfer_out};
  {
     let buf = pkt_8x8::pack_8x8(id, true, addr, data);
  
-    nios_access::<in_len, 15, endpoint>(dev, &buf).await?;
+    nios_access::<in_len, 16, endpoint>(dev, &buf).await?;
  
     let out = pkt_8x8::unpack_8x8(&buf)?.3;
 
@@ -77,7 +77,7 @@ use crate::usb::{bulk_transfer_in, bulk_transfer_out};
  {
     let buf = pkt_8x16::pack_8x16(id, false, addr, 0);
 
-    nios_access::<in_len, 15, endpoint>(dev, &buf).await?;
+    nios_access::<in_len, 16, endpoint>(dev, &buf).await?;
  
     let out = pkt_8x16::unpack_8x16(&buf)?.3;
  
@@ -89,7 +89,7 @@ use crate::usb::{bulk_transfer_in, bulk_transfer_out};
  {
     let buf = pkt_8x16::pack_8x16(id, true, addr, data);
  
-    nios_access::<in_len, 15, endpoint>(dev, &buf).await?;
+    nios_access::<in_len, 16, endpoint>(dev, &buf).await?;
  
     let out = pkt_8x16::unpack_8x16(&buf)?.3;
 
