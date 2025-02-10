@@ -1,18 +1,20 @@
+use std::thread::sleep;
+use std::time::Duration;
 use crate::nios::*;
 use crate::usb::{bulk_transfer_in, bulk_transfer_out};
 use crate::{BladerfDirection, BladerfVersion, Device};
 use anyhow::{Error, Result};
 use packet::{pkt_16x64, pkt_32x32, pkt_8x16, pkt_8x32, pkt_8x64, pkt_8x8, pkt_retune};
 
-pub async fn nios_access<const in_len: usize, const out_len: usize, const endpoint: u8>(
+pub async fn nios_access(
     dev: &Device,
-    buf: &[u8; out_len],
-) -> Result<[u8; in_len]> {
+    buf: &[u8; 16],
+) -> Result<[u8; 16]> {
     /* Send the command */
-    bulk_transfer_out::<endpoint>(dev, buf).await?;
+    bulk_transfer_out::<0x02>(dev, buf).await?;
 
     /* Retrieve the request */
-    let out = bulk_transfer_in::<endpoint, in_len>(dev).await?;
+    let out = bulk_transfer_in::<0x82, 16>(dev).await?;
     Ok(out)
 }
 
@@ -23,7 +25,7 @@ pub async fn nios_8x8_read<const in_len: usize, const out_len: usize, const endp
 ) -> Result<u8> {
     let buf = pkt_8x8::pack_8x8(id, false, addr, 0);
 
-    nios_access::<in_len, 16, endpoint>(dev, &buf).await?;
+    nios_access(dev, &buf).await?;
 
     let out = pkt_8x8::unpack_8x8(&buf)?.3;
 
@@ -38,7 +40,7 @@ pub async fn nios_8x8_write<const in_len: usize, const out_len: usize, const end
 ) -> Result<u8> {
     let buf = pkt_8x8::pack_8x8(id, true, addr, data);
 
-    nios_access::<in_len, 16, endpoint>(dev, &buf).await?;
+    nios_access(dev, &buf).await?;
 
     let out = pkt_8x8::unpack_8x8(&buf)?.3;
 
@@ -52,7 +54,7 @@ pub async fn nios_8x16_read<const in_len: usize, const out_len: usize, const end
 ) -> Result<u16> {
     let buf = pkt_8x16::pack_8x16(id, false, addr, 0);
 
-    nios_access::<in_len, 16, endpoint>(dev, &buf).await?;
+    nios_access(dev, &buf).await?;
 
     let out = pkt_8x16::unpack_8x16(&buf)?.3;
 
@@ -67,21 +69,21 @@ pub async fn nios_8x16_write<const in_len: usize, const out_len: usize, const en
 ) -> Result<u16> {
     let buf = pkt_8x16::pack_8x16(id, true, addr, data);
 
-    nios_access::<in_len, 16, endpoint>(dev, &buf).await?;
+    nios_access(dev, &buf).await?;
 
     let out = pkt_8x16::unpack_8x16(&buf)?.3;
 
     Ok(out)
 }
 
-pub async fn nios_8x32_read<const in_len: usize, const out_len: usize, const endpoint: u8>(
+pub async fn nios_8x32_read(
     dev: &Device,
     id: u8,
     addr: u8,
 ) -> Result<u32> {
     let buf = pkt_8x32::pack_8x32(id, false, addr, 0);
 
-    nios_access::<in_len, 16, endpoint>(dev, &buf).await?;
+    nios_access(dev, &buf).await?;
 
     let out = pkt_8x32::unpack_8x32(&buf)?.3;
 
@@ -96,7 +98,7 @@ pub async fn nios_8x32_write<const in_len: usize, const out_len: usize, const en
 ) -> Result<u32> {
     let buf = pkt_8x32::pack_8x32(id, true, addr, data);
 
-    nios_access::<in_len, 16, endpoint>(dev, &buf).await?;
+    nios_access(dev, &buf).await?;
 
     let out = pkt_8x32::unpack_8x32(&buf)?.3;
 
@@ -110,7 +112,7 @@ pub async fn nios_16x64_read<const in_len: usize, const out_len: usize, const en
 ) -> Result<u64> {
     let buf = pkt_16x64::pack_16x64(id, false, addr, 0);
 
-    nios_access::<in_len, 16, endpoint>(dev, &buf).await?;
+    nios_access(dev, &buf).await?;
 
     let out = pkt_16x64::unpack_16x64(&buf)?.3;
 
@@ -125,7 +127,7 @@ pub async fn nios_16x64_write<const in_len: usize, const out_len: usize, const e
 ) -> Result<u64> {
     let buf = pkt_16x64::pack_16x64(id, true, addr, data);
 
-    nios_access::<in_len, 16, endpoint>(dev, &buf).await?;
+    nios_access(dev, &buf).await?;
 
     let out = pkt_16x64::unpack_16x64(&buf)?.3;
 
@@ -139,7 +141,7 @@ pub async fn nios_32x32_read<const in_len: usize, const out_len: usize, const en
 ) -> Result<u32> {
     let buf = pkt_32x32::pack_32x32(id, false, addr, 0);
 
-    nios_access::<in_len, 16, endpoint>(dev, &buf).await?;
+    nios_access(dev, &buf).await?;
 
     let out = pkt_32x32::unpack_32x32(&buf)?.3;
 
@@ -154,7 +156,7 @@ pub async fn nios_32x32_write<const in_len: usize, const out_len: usize, const e
 ) -> Result<u32> {
     let buf = pkt_32x32::pack_32x32(id, true, addr, data);
 
-    nios_access::<in_len, 16, endpoint>(dev, &buf).await?;
+    nios_access(dev, &buf).await?;
 
     let out = pkt_32x32::unpack_32x32(&buf)?.3;
 
@@ -172,7 +174,7 @@ pub async fn nios_32x32_masked_read<
 ) -> Result<u32> {
     let buf = pkt_32x32::pack_32x32(id, false, mask, 0);
 
-    nios_access::<in_len, 16, endpoint>(dev, &buf).await?;
+    nios_access(dev, &buf).await?;
 
     let out = pkt_32x32::unpack_32x32(&buf)?.3;
 
@@ -191,17 +193,17 @@ pub async fn nios_32x32_masked_write<
 ) -> Result<u32> {
     let buf = pkt_32x32::pack_32x32(id, true, mask, val);
 
-    nios_access::<in_len, 16, endpoint>(dev, &buf).await?;
+    nios_access(dev, &buf).await?;
 
     let out = pkt_32x32::unpack_32x32(&buf)?.3;
 
     Ok(out)
 }
 
-pub async fn nios_config_read<const in_len: usize, const out_len: usize, const endpoint: u8>(
+pub async fn nios_config_read<const endpoint: u8>(
     dev: &Device,
 ) -> Result<u32> {
-    let out = nios_8x32_read::<in_len, out_len, endpoint>(dev, 1, 0).await?;
+    let out = nios_8x32_read(dev, 1, 0).await?;
 
     Ok(out)
 }
@@ -216,14 +218,10 @@ pub async fn nios_config_write<const in_len: usize, const out_len: usize, const 
     //log_verbose("%s: Wrote 0x%08x\n", __FUNCTION__, val);
 }
 
-pub async fn nios_get_fpga_version<
-    const in_len: usize,
-    const out_len: usize,
-    const endpoint: u8,
->(
+pub async fn nios_get_fpga_version(
     dev: &Device,
 ) -> Result<BladerfVersion> {
-    let regval: u32 = nios_8x32_read::<in_len, out_len, endpoint>(dev, 0, 0).await?;
+    let regval: u32 = nios_8x32_read(dev, 0, 0).await?;
 
     Ok(BladerfVersion {
         major: ((regval >> 24) & 0xff) as u8,
@@ -244,7 +242,7 @@ pub async fn nios_get_timestamp<const in_len: usize, const out_len: usize, const
 
     let buf = pkt_8x64::pack_8x64(0, false, addr, 0);
 
-    nios_access::<in_len, 16, endpoint>(dev, &buf).await?;
+    nios_access(dev, &buf).await?;
 
     let timestamp = pkt_8x64::unpack_8x64(&buf)?.3;
 
@@ -409,7 +407,7 @@ pub async fn nios_rffe_control_read<
 >(
     dev: &Device,
 ) -> Result<u32> {
-    let out = nios_8x32_read::<in_len, 16, endpoint>(dev, 3, 0).await?;
+    let out = nios_8x32_read(dev, 3, 0).await?;
 
     Ok(out)
 }
@@ -474,11 +472,11 @@ pub async fn nios_ad56x1_vctcxo_trim_dac_write<
     Ok(out)
 }
 
-pub async fn nios_adf400x_read<const in_len: usize, const out_len: usize, const endpoint: u8>(
+pub async fn nios_adf400x_read<const endpoint: u8>(
     dev: &Device,
     addr: u8,
 ) -> Result<u32> {
-    let out = nios_8x32_read::<in_len, 16, endpoint>(dev, 4, addr).await?;
+    let out = nios_8x32_read(dev, 4, addr).await?;
 
     Ok(out)
 }
@@ -730,7 +728,7 @@ pub async fn nios_retune<const in_len: usize, const out_len: usize, const endpoi
         ch, timestamp, nint, nfrac, freqsel, vcocap, low_band, xb_gpio, quick_tune,
     );
 
-    nios_access::<in_len, 16, endpoint>(dev, &buf).await?;
+    nios_access(dev, &buf).await?;
 
     let out = pkt_retune::unpack_retune(&buf);
 
@@ -757,7 +755,7 @@ pub async fn nios_retune2<const in_len: usize, const out_len: usize, const endpo
 ) -> Result<u64> {
     let buf = pkt_retune::pack_retune2(ch, timestamp, nios_profile, rffe_profile, port, spdt);
 
-    nios_access::<in_len, 16, endpoint>(dev, &buf).await?;
+    nios_access(dev, &buf).await?;
 
     let out = pkt_retune::unpack_retune2(&buf);
 

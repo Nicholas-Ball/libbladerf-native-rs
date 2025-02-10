@@ -9,7 +9,7 @@ extern crate std;
 #[cfg(feature = "nusb")]
 use ::nusb::{DeviceInfo, Interface};
 use usb::*;
-use crate::nios::nios_get_fpga_version;
+use crate::nios::nios_access::nios_get_fpga_version;
 
 pub mod usb;
 pub mod nios;
@@ -110,12 +110,17 @@ impl Device{
     }
 
     pub async fn get_version(&mut self) -> anyhow::Result<BladerfVersion> {
-        let version = usb::nusb::nusb_bladerf_to_host::<0,0,0,4>(&<Option<Interface> as Clone>::clone(&self.interface).unwrap()).await?;
-        Ok(BladerfVersion{
-            major: version[0],
-            minor: version[2],
-            patch: version[1],
-        })
+        //let version = usb::nusb::nusb_bladerf_to_host::<0,0,0,4>(&<Option<Interface> as Clone>::clone(&self.interface).unwrap()).await?;
+        
+        let version = nios_get_fpga_version(self).await?;
+        
+        // Ok(BladerfVersion{
+        //     major: version[0],
+        //     minor: version[2],
+        //     patch: version[1],
+        // })
+        
+        Ok(version)
     }
 
     pub fn disconnect(&mut self) -> anyhow::Result<()> {
@@ -124,7 +129,7 @@ impl Device{
         Ok(())
     }
     
-    pub async fn get_timestamp(&self, bladerf_direction: BladerfDirection) -> anyhow::Result<u64> {
-        nios::nios_get_timestamp(self, bladerf_direction).await
-    }
+    // pub async fn get_timestamp(&self, bladerf_direction: BladerfDirection) -> anyhow::Result<u64> {
+    //     nios::nios_get_timestamp(self, bladerf_direction).await
+    // }
 }

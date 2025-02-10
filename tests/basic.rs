@@ -111,9 +111,9 @@ async fn get_timestamp_test() {
     
     device.enable_rx().await.unwrap();
 
-    let timestamp = device.get_timestamp(RX).await.unwrap();
+    //let timestamp = device.get_timestamp(RX).await.unwrap();
 
-    println!("Timestamp: {}", timestamp);
+    //println!("Timestamp: {}", timestamp);
 
     device.disconnect().unwrap();
 
