@@ -15,6 +15,9 @@ async fn connect_test() {
 
     assert!(device.is_connected());
 
+    let subscriber = tracing_subscriber::FmtSubscriber::new();
+    tracing::subscriber::set_global_default(subscriber).unwrap();
+
     let version = device.get_version().await.unwrap();
 
     assert_eq!(version, BladerfVersion{major: 2, minor: 4, patch: 0});

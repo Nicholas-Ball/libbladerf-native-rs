@@ -39,7 +39,6 @@ pub async fn nusb_host_to_bladerf<const request: u8, const value: u16, const ind
 }
 
 pub async fn nusb_bulk_transfer_in<const endpoint: u8, const len: usize>(interface: &Interface) -> anyhow::Result<Vec<u8>>{
-    
     let buff = RequestBuffer::new(len);
     let out = interface.bulk_in(endpoint, buff).await;
     out.status?;
@@ -50,7 +49,7 @@ pub async fn nusb_bulk_transfer_in<const endpoint: u8, const len: usize>(interfa
 pub async fn nusb_bulk_transfer_out<const endpoint: u8>(interface: &Interface, buf: &[u8]) -> anyhow::Result<ResponseBuffer>{
     let resp =  interface.bulk_out(endpoint, buf.to_vec()).await;
     resp.status?;
-    
+
     Ok(
         resp.data
     )

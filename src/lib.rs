@@ -110,17 +110,13 @@ impl Device{
     }
 
     pub async fn get_version(&mut self) -> anyhow::Result<BladerfVersion> {
-        //let version = usb::nusb::nusb_bladerf_to_host::<0,0,0,4>(&<Option<Interface> as Clone>::clone(&self.interface).unwrap()).await?;
+        let version = usb::nusb::nusb_bladerf_to_host::<0,0,0,4>(&<Option<Interface> as Clone>::clone(&self.interface).unwrap()).await?;
         
-        let version = nios_get_fpga_version(self).await?;
-        
-        // Ok(BladerfVersion{
-        //     major: version[0],
-        //     minor: version[2],
-        //     patch: version[1],
-        // })
-        
-        Ok(version)
+        Ok(BladerfVersion{
+            major: version[0],
+            minor: version[2],
+            patch: version[1],
+        })
     }
 
     pub fn disconnect(&mut self) -> anyhow::Result<()> {
@@ -128,8 +124,4 @@ impl Device{
         self.interface = None;
         Ok(())
     }
-    
-    // pub async fn get_timestamp(&self, bladerf_direction: BladerfDirection) -> anyhow::Result<u64> {
-    //     nios::nios_get_timestamp(self, bladerf_direction).await
-    // }
 }

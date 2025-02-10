@@ -6,9 +6,11 @@ edition = "2021"
 [dependencies]
 anyhow = { version = "1.0.95", default-features = false }
 nusb = { version = "0.1.12", optional = true }
+tracing = "0.1"
 
 [dev-dependencies]
 tokio = { version = "1.43.0", features = ["full"] }
+tracing-subscriber = "0.3"
 
 [features]
 default = ["std"]
