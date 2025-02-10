@@ -17,7 +17,7 @@ const NIOS_PKT_8x32_FLAG_SUCCESS: usize = 2;
 
 pub fn pack_8x32(target: u8, write: bool, addr: u8, data: u32) -> [u8; 16] {
     let mut buf = [0; 16];
-    
+
     buf[NIOS_PKT_8x32_IDX_MAGIC] = NIOS_PKT_8x32_MAGIC;
     buf[NIOS_PKT_8x32_IDX_TARGET_ID] = target;
 
@@ -31,11 +31,11 @@ pub fn pack_8x32(target: u8, write: bool, addr: u8, data: u32) -> [u8; 16] {
     buf[NIOS_PKT_8x32_IDX_DATA + 1] = (data >> 8) as u8;
     buf[NIOS_PKT_8x32_IDX_DATA + 2] = (data >> 16) as u8;
     buf[NIOS_PKT_8x32_IDX_DATA + 3] = (data >> 24) as u8;
-    
+
     buf
 }
 
-pub fn unpack_8x32(packet: &[u8]) -> Result<(u8,bool,u8,u32,bool)>{
+pub fn unpack_8x32(packet: &[u8]) -> Result<(u8, bool, u8, u32, bool)> {
     if packet[NIOS_PKT_8x32_IDX_MAGIC] == NIOS_PKT_8x32_MAGIC {
         let target = packet[NIOS_PKT_8x32_IDX_TARGET_ID];
         let write = packet[NIOS_PKT_8x32_IDX_FLAGS] & NIOS_PKT_8x32_FLAG_WRITE as u8 != 0;
@@ -47,8 +47,8 @@ pub fn unpack_8x32(packet: &[u8]) -> Result<(u8,bool,u8,u32,bool)>{
             (packet[NIOS_PKT_8x32_IDX_DATA + 2] as u32) << 16 |
             (packet[NIOS_PKT_8x32_IDX_DATA + 3] as u32) << 24;
 
-        Ok((target,write,addr,data,success))
-    }else {
+        Ok((target, write, addr, data, success))
+    } else {
         Err(anyhow::anyhow!("Invalid packet magic"))
     }
 }

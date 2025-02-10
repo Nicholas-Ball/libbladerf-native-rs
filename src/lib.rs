@@ -2,20 +2,19 @@
 
 #[cfg(feature = "std")]
 extern crate alloc;
-
 #[cfg(feature = "std")]
 extern crate std;
 
+use crate::nios::nios_access::nios_lms6_read;
 #[cfg(feature = "nusb")]
 use ::nusb::{DeviceInfo, Interface};
 use usb::*;
-use crate::nios::nios_access::nios_get_fpga_version;
 
 pub mod usb;
 pub mod nios;
 
 #[derive(Copy, Clone, Eq, PartialEq, Debug)]
-pub struct BladerfVersion{
+pub struct BladerfVersion {
     pub major: u8,
     pub minor: u8,
     pub patch: u8,
@@ -34,7 +33,7 @@ const BLADE_USB_CMD_RF_TX: u8 = 5;
 
 #[repr(u8)]
 #[derive(Copy, Clone, Eq, PartialEq)]
-pub enum BladerfDirection{
+pub enum BladerfDirection {
     RX,
     TX,
 }
@@ -56,7 +55,7 @@ pub async fn list_devices<const len: usize>() -> anyhow::Result<[Option<Device>;
 }
 
 #[cfg(feature = "nusb")]
-impl Device{
+impl Device {
     pub fn is_connected(&self) -> bool {
         self.interface.is_some()
     }
@@ -69,9 +68,9 @@ impl Device{
     }
 
     pub async fn enable_rx(&mut self) -> anyhow::Result<()> {
-        let test = control_device_to_host::<BLADE_USB_CMD_RF_RX,1,0,4>(self).await?;
+        let test = control_device_to_host::<BLADE_USB_CMD_RF_RX, 1, 0, 4>(self).await?;
 
-        if test == [0,0,0,0] {
+        if test == [0, 0, 0, 0] {
             Ok(())
         } else {
             Err(anyhow::anyhow!("Error enabling RX"))
@@ -79,9 +78,9 @@ impl Device{
     }
 
     pub async fn disable_rx(&mut self) -> anyhow::Result<()> {
-        let test = control_device_to_host::<BLADE_USB_CMD_RF_RX,0,0,4>(self).await?;
+        let test = control_device_to_host::<BLADE_USB_CMD_RF_RX, 0, 0, 4>(self).await?;
 
-        if test == [64,0,0,0] {
+        if test == [64, 0, 0, 0] {
             Ok(())
         } else {
             Err(anyhow::anyhow!("Error disabling RX"))
@@ -90,9 +89,9 @@ impl Device{
 
 
     pub async fn enable_tx(&self) -> anyhow::Result<()> {
-        let test = control_device_to_host::<BLADE_USB_CMD_RF_TX,1,0,4>(self).await?;
+        let test = control_device_to_host::<BLADE_USB_CMD_RF_TX, 1, 0, 4>(self).await?;
 
-        if test == [0,0,0,0] {
+        if test == [0, 0, 0, 0] {
             Ok(())
         } else {
             Err(anyhow::anyhow!("Error enabling RX"))
@@ -100,9 +99,9 @@ impl Device{
     }
 
     pub async fn disable_tx(&mut self) -> anyhow::Result<()> {
-        let test = control_device_to_host::<BLADE_USB_CMD_RF_TX,0,0,4>(self).await?;
+        let test = control_device_to_host::<BLADE_USB_CMD_RF_TX, 0, 0, 4>(self).await?;
 
-        if test == [64,0,0,0] {
+        if test == [64, 0, 0, 0] {
             Ok(())
         } else {
             Err(anyhow::anyhow!("Error disabling RX"))
@@ -110,13 +109,19 @@ impl Device{
     }
 
     pub async fn get_version(&mut self) -> anyhow::Result<BladerfVersion> {
-        let version = usb::nusb::nusb_bladerf_to_host::<0,0,0,4>(&<Option<Interface> as Clone>::clone(&self.interface).unwrap()).await?;
-        
-        Ok(BladerfVersion{
+        let version = usb::nusb::nusb_bladerf_to_host::<0, 0, 0, 4>(&<Option<Interface> as Clone>::clone(&self.interface).unwrap()).await?;
+
+        Ok(BladerfVersion {
             major: version[0],
             minor: version[2],
             patch: version[1],
         })
+    }
+    
+    pub async fn get_gain(&mut self, bladerf_direction: BladerfDirection) -> anyhow::Result<f32> {
+        let lna = nios_lms6_read(self, 0x75).await?;
+
+        Ok(lna as f32)
     }
 
     pub fn disconnect(&mut self) -> anyhow::Result<()> {

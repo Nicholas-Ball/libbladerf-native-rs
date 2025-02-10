@@ -31,7 +31,7 @@ pub fn pack_retune(
     buf[NIOS_PKT_RETUNE_IDX_MAGIC] = NIOS_PKT_RETUNE_MAGIC;
 
     buf[NIOS_PKT_RETUNE_IDX_TIME + 0] = (timestamp & 0xff) as u8;
-    buf[NIOS_PKT_RETUNE_IDX_TIME + 1] = ((timestamp >>  8) & 0xff) as u8;
+    buf[NIOS_PKT_RETUNE_IDX_TIME + 1] = ((timestamp >> 8) & 0xff) as u8;
     buf[NIOS_PKT_RETUNE_IDX_TIME + 2] = ((timestamp >> 16) & 0xff) as u8;
     buf[NIOS_PKT_RETUNE_IDX_TIME + 3] = ((timestamp >> 24) & 0xff) as u8;
     buf[NIOS_PKT_RETUNE_IDX_TIME + 4] = ((timestamp >> 32) & 0xff) as u8;
@@ -39,11 +39,11 @@ pub fn pack_retune(
     buf[NIOS_PKT_RETUNE_IDX_TIME + 6] = ((timestamp >> 48) & 0xff) as u8;
     buf[NIOS_PKT_RETUNE_IDX_TIME + 7] = ((timestamp >> 56) & 0xff) as u8;
 
-    buf[NIOS_PKT_RETUNE_IDX_INTFRAC + 0]  = ((nint >> 1) & 0xff) as u8;
-    buf[NIOS_PKT_RETUNE_IDX_INTFRAC + 1]  = ((nint & 0x1) << 7) as u8;
+    buf[NIOS_PKT_RETUNE_IDX_INTFRAC + 0] = ((nint >> 1) & 0xff) as u8;
+    buf[NIOS_PKT_RETUNE_IDX_INTFRAC + 1] = ((nint & 0x1) << 7) as u8;
     buf[NIOS_PKT_RETUNE_IDX_INTFRAC + 1] |= ((nfrac >> 16) & 0x7f) as u8;
-    buf[NIOS_PKT_RETUNE_IDX_INTFRAC + 2]  = ((nfrac >> 8) & 0xff) as u8;
-    buf[NIOS_PKT_RETUNE_IDX_INTFRAC + 3]  = (nfrac & 0xff) as u8;
+    buf[NIOS_PKT_RETUNE_IDX_INTFRAC + 2] = ((nfrac >> 8) & 0xff) as u8;
+    buf[NIOS_PKT_RETUNE_IDX_INTFRAC + 3] = (nfrac & 0xff) as u8;
 
     buf[NIOS_PKT_RETUNE_IDX_FREQSEL] = freqsel & 0xff;
 
@@ -60,13 +60,13 @@ pub fn pack_retune(
     }
 
     if (low_band) {
-    buf[NIOS_PKT_RETUNE_IDX_BANDSEL] = FLAG_LOW_BAND;
+        buf[NIOS_PKT_RETUNE_IDX_BANDSEL] = FLAG_LOW_BAND;
     } else {
-    buf[NIOS_PKT_RETUNE_IDX_BANDSEL] = 0x00;
+        buf[NIOS_PKT_RETUNE_IDX_BANDSEL] = 0x00;
     }
 
     if (quick_tune) {
-    buf[NIOS_PKT_RETUNE_IDX_BANDSEL] |= FLAG_QUICK_TUNE;
+        buf[NIOS_PKT_RETUNE_IDX_BANDSEL] |= FLAG_QUICK_TUNE;
     }
 
     buf[NIOS_PKT_RETUNE_IDX_BANDSEL] |= vcocap;
@@ -97,7 +97,6 @@ pub fn pack_retune2(
     port: u8,
     spdt: u8) -> [u8; 16]
 {
-
     let mut buf: [u8; 16] = [0; 16];
     let mut pkt_port: u8;
 
@@ -114,8 +113,8 @@ pub fn pack_retune2(
 
     buf[NIOS_PKT_RETUNE2_IDX_MAGIC] = NIOS_PKT_RETUNE2_MAGIC;
 
-    buf[NIOS_PKT_RETUNE2_IDX_TIME + 0] = (timestamp >>  0) as u8;
-    buf[NIOS_PKT_RETUNE2_IDX_TIME + 1] = (timestamp >>  8) as u8;
+    buf[NIOS_PKT_RETUNE2_IDX_TIME + 0] = (timestamp >> 0) as u8;
+    buf[NIOS_PKT_RETUNE2_IDX_TIME + 1] = (timestamp >> 8) as u8;
     buf[NIOS_PKT_RETUNE2_IDX_TIME + 2] = (timestamp >> 16) as u8;
     buf[NIOS_PKT_RETUNE2_IDX_TIME + 3] = (timestamp >> 24) as u8;
     buf[NIOS_PKT_RETUNE2_IDX_TIME + 4] = (timestamp >> 32) as u8;
@@ -140,7 +139,7 @@ pub fn pack_retune2(
 
 pub fn unpack_retune(buf: &[u8]) -> (u64, u8, u8)
 {
-    let mut duration: u64 =  buf[NIOS_PKT_RETUNE_IDX_TIME] as u64;
+    let mut duration: u64 = buf[NIOS_PKT_RETUNE_IDX_TIME] as u64;
     duration |= (buf[NIOS_PKT_RETUNE_IDX_TIME + 1] as u64) << 8;
     duration |= (buf[NIOS_PKT_RETUNE_IDX_TIME + 2] as u64) << 16;
     duration |= (buf[NIOS_PKT_RETUNE_IDX_TIME + 3] as u64) << 24;
@@ -168,5 +167,5 @@ pub fn unpack_retune2(buf: &[u8]) -> (u64, u8)
 
     let flags = buf[NIOS_PKT_RETUNE2_RESP_IDX_FLAGS];
 
-    return(duration, flags);
+    return (duration, flags);
 }
